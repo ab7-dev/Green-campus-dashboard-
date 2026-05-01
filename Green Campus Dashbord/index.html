@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Campus IoT Monitor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="light">
+  <div id="app">
+    <div id="sw">
+      <canvas id="cv"></canvas>
+      <div class="cn ctl"></div>
+      <div class="cn ctr"></div>
+      <div class="cn cbl"></div>
+      <div class="cn cbr"></div>
+      <div id="topbar">
+        <span id="ttl">&#9672; CAMPUS IoT MONITOR &#9672;</span>
+        <span id="clkd"></span>
+      </div>
+      <div id="bsel">
+        <button class="bb on" onclick="selBlock(0)">&#9635; BLOCK A<em>Engineering</em></button>
+        <button class="bb" onclick="selBlock(1)">&#9635; BLOCK B<em>Science</em></button>
+        <button class="bb" onclick="selBlock(2)">&#9635; BLOCK C<em>Admin</em></button>
+        <button class="bb" onclick="selBlock(3)">&#9635; BLOCK D<em>Hostel</em></button>
+      </div>
+      <div id="rp">
+        <button class="ab" id="tbtn" onclick="toggleTheme()">&#127769; DARK MODE</button>
+        <button class="ab" id="lbtn" onclick="toggleLights()"
+          style="border-color:rgba(255,238,80,.5);color:#ffe840;font-weight:800">&#128261; LIGHTS ON</button>
+        <button class="ab" onclick="openDashboard()"
+          style="border-color:rgba(34,197,94,.4);color:#22c55e;font-weight:800">&#9638; DASHBOARD</button>
+        <div id="hints">Drag &#8594; Rotate &nbsp; Scroll &#8594; Zoom<br>Drag down &#8594; underground tanks</div>
+      </div>
+      <button id="camrst" onclick="resetCam()">&#8635; RESET VIEW</button>
+      <div id="vtip">&#9660; Tilt camera down to view underground waste tanks</div>
+      <div id="alrt">&#9888; WASTE CRITICAL &#8212; BLOCK <span id="abl">A</span></div>
+    </div>
+ 
+    <div id="dash">
+      <div id="dhd">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span class="ldot"></span><span id="dlbl">LIVE TELEMETRY &#9658;</span>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+          <span id="dbn">BLOCK A &#8212; Engineering</span>
+          <span id="dsub">Water: 15,000L &nbsp; Waste: 8,000L &nbsp; 11kV HT</span>
+        </div>
+        <span id="dts"></span>
+      </div>
+      <div id="cards">
+        <div class="card cW">
+          <div class="ch">&#128167; WATER TANK <span class="atg" id="wdtag">DRAIN</span></div>
+          <div class="mg">
+            <div class="mi"><span class="ml">Tank Level</span>
+              <span class="mv" id="mwl" style="color:var(--cy)">78<span class="mu">%</span></span>
+              <div class="mb">
+                <div class="mbf" id="bwl" style="width:78%;background:var(--cy)"></div>
+              </div>
+            </div>
+            <div class="mi"><span class="ml">Capacity</span>
+              <span class="mv" id="mcap" style="color:var(--bl);font-size:12px">15,000<span class="mu">L</span></span>
+            </div>
+            <div class="mi"><span class="ml">Volume Now</span>
+              <span class="mv" id="mvol" style="color:#40c8f0;font-size:12px">11,700<span class="mu">L</span></span>
+            </div>
+            <div class="mi"><span class="ml">Head Pressure</span>
+              <span class="mv" id="mprs" style="color:#80d8ff;font-size:12px">2.9<span class="mu">bar</span></span>
+            </div>
+            <div class="mi mf"><span class="ml">Purity (TDS)</span>
+              <span class="mv" id="mpur" style="color:var(--gn);font-size:12px">98.5<span class="mu">%</span></span>
+              <div class="mb">
+                <div class="mbf" id="bpur" style="width:98%;background:var(--gn)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card cE">
+          <div class="ch">&#9889; ELECTRICITY METER <span class="atg">LIVE AUTO</span></div>
+          <div class="mg">
+            <div class="mi"><span class="ml">HT Supply</span>
+              <span class="mv" id="mht" style="color:var(--ye)">11.00<span class="mu">kV</span></span>
+            </div>
+            <div class="mi"><span class="ml">LT Voltage</span>
+              <span class="mv" id="mlt" style="color:#ffa726">415<span class="mu">V</span></span>
+            </div>
+            <div class="mi"><span class="ml">Current</span>
+              <span class="mv" id="mam" style="color:#ffcc02">48.0<span class="mu">A</span></span>
+            </div>
+            <div class="mi"><span class="ml">Active Power</span>
+              <span class="mv" id="mkw" style="color:#ff9800;font-size:12px">29.8<span class="mu">kW</span></span>
+            </div>
+            <div class="mi"><span class="ml">Frequency</span>
+              <span class="mv" id="mfq" style="color:#ffe57f;font-size:12px">50.01<span class="mu">Hz</span></span>
+            </div>
+            <div class="mi"><span class="ml">Power Factor</span>
+              <span class="mv" id="mpf" style="color:#ffd54f;font-size:12px">0.910</span>
+            </div>
+            <div class="mi mf"><span class="ml">Voltage Fluctuation</span>
+              <div style="display:flex;align-items:center;gap:5px;margin-top:1px">
+                <span class="mv" id="mfl" style="font-size:12px;min-width:52px">+/-2.0<span class="mu">V</span></span>
+                <canvas id="wvc" height="26"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card cG">
+          <div class="ch">&#128465; WASTE TANK <span class="atg" id="wftag">FILL</span></div>
+          <div class="wrw">
+            <div class="rb">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle cx="36" cy="36" r="29" fill="none" stroke="#d0ead0" stroke-width="8" />
+                <circle cx="36" cy="36" r="29" fill="none" stroke="#00e676" stroke-width="8" stroke-dasharray="182.2"
+                  id="wring" stroke-dashoffset="182.2" stroke-linecap="round" transform="rotate(-90 36 36)"
+                  style="transition:stroke-dashoffset .7s,stroke .4s" />
+              </svg>
+              <div class="rpc"><span id="wpct" style="color:var(--gn)">35%</span><span class="rsc">WASTE</span></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+              <div class="mi"><span class="ml">Collected</span>
+                <span class="mv" id="wvl" style="color:var(--gn);font-size:11px">2,800 L</span>
+              </div>
+              <div class="mi"><span class="ml">Capacity</span>
+                <span class="mv" id="wcp" style="color:#69f0ae;font-size:11px">8,000 L</span>
+              </div>
+              <div class="sr">
+                <span class="dt ok" id="wdt"></span>
+                <span style="font-family:'Share Tech Mono',monospace;font-size:9px;font-weight:700"
+                  id="wst">NORMAL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card cC">
+          <div class="ch">&#127925; ADJUST</div>
+          <div class="srows">
+            <div class="srow">
+              <div class="slr"><span class="slb">WATER %</span><span class="sv" id="svw">78%</span></div>
+              <input type="range" min="0" max="100" value="78" id="slw" oninput="setWater(+this.value)">
+            </div>
+            <div class="srow">
+              <div class="slr"><span class="slb">WASTE %</span><span class="sv" id="svwt"
+                  style="color:var(--gn)">35%</span></div>
+              <input type="range" min="0" max="100" value="35" id="slwt" oninput="setWaste(+this.value)">
+            </div>
+            <div class="ntx">Auto-drain and fill active<br>Electricity: live sim<br>Pressure+Purity: auto</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- ═══════════════ BIG DASHBOARD OVERLAY ═══════════════ -->
+  <div id="bigdash">
+    <!-- Sidebar -->
+    <div id="bds">
+      <div class="bds-logo">
+        <div class="bds-logo-ico">🌿</div>
+        <div>
+          <div class="bds-logo-nm">GreenCampus</div>
+          <div class="bds-logo-sub">IoT MONITOR &middot; LIVE</div>
+        </div>
+      </div>
+      <div class="bds-sec">Campus Blocks</div>
+      <div id="bd-sb-blocks"></div>
+      <div class="bds-divider"></div>
+      <div class="bds-sec" style="padding-top:5px">Views</div>
+      <div class="bds-view" id="bdvw-analysis" onclick="bdSelView('analysis')">
+        <span class="bds-view-ico">📊</span>
+        <span class="bds-view-nm">Analysis</span>
+      </div>
+      <div class="bds-view" id="bdvw-master" onclick="bdSelView('master')">
+        <span class="bds-view-ico">📋</span>
+        <span class="bds-view-nm">Master Reading</span>
+      </div>
+      <div style="flex:1"></div>
+      <div class="bds-foot">
+        <div class="bds-online">
+          <div class="bds-pulse" id="bdPulse"></div>
+          <span id="bdStatus">System Online</span>
+        </div>
+        <div class="bds-clk" id="bdClk">--:--:--</div>
+      </div>
+    </div>
+    <!-- Main -->
+    <div id="bdm">
+      <div id="bdtop">
+        <span id="bdtitle">Block A &mdash; Water</span>
+        <div class="bdsp"></div>
+        <div class="bd-pg">
+          <div class="bd-p on" data-m="water" onclick="bdMode('water')">💧 Water</div>
+          <div class="bd-p" data-m="electricity" onclick="bdMode('electricity')">⚡ Electricity</div>
+          <div class="bd-p" data-m="waste" onclick="bdMode('waste')">🗑️ Waste</div>
+        </div>
+        <div class="bd-pg" style="margin-left:8px">
+          <div class="bd-p on" data-r="live" onclick="bdRange('live')">⬤ Live</div>
+          <div class="bd-p" data-r="daily" onclick="bdRange('daily')">Daily</div>
+          <div class="bd-p" data-r="weekly" onclick="bdRange('weekly')">Weekly</div>
+          <div class="bd-p" data-r="monthly" onclick="bdRange('monthly')">Monthly</div>
+        </div>
+        <button class="bd-btn" id="bdTheme" onclick="bdToggleTheme()" style="margin-left:8px">☀ Light</button>
+        <button class="bd-back" onclick="closeDash()" style="margin-left:8px">← 3D MAP</button>
+      </div>
+      <div id="bdc"></div>
+    </div>
+  </div>
+ 
+
+  <script src="scene.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
